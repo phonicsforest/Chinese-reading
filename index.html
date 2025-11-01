@@ -1,377 +1,287 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>第1課｜一二三（粵語：Part 1 & Part 2）</title>
-  <style>
-    :root{
-      --bg:#f6f7fb; --card:#fff; --ink:#111827; --muted:#6b7280;
-      --accent:#2563eb; --accent-ink:#fff; --ok:#16a34a; --warn:#b45309; --err:#dc2626;
-      --shadow:0 10px 25px rgba(0,0,0,.08); --radius:24px;
-    }
-    html,body{height:100%}
-    body{
-      margin:0;background:var(--bg);color:var(--ink);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,PingFang HK,PingFang TC,"Microsoft JhengHei","Noto Sans CJK TC",sans-serif;
-      display:flex;align-items:center;justify-content:center;
-    }
-    .wrap{width:min(780px,94vw);padding:18px}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--muted);font-size:14px}
-    .top-right{display:flex;align-items:center;gap:10px}
-    .select{appearance:none;border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:6px 10px;font:inherit;color:#374151}
-    .badge{display:inline-block;background:#eef2ff;color:#3043a9;border-radius:999px;padding:3px 10px;font-size:12px}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 22px}
-    .warnbar{margin:-10px 0 10px 0; font-size:12px; color:#92400e}
-    .center{display:flex;flex-direction:column;align-items:center;gap:10px}
-    .face{
-      user-select:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      border-radius:20px;border:1px solid #eef0f5;background:#fafbff;padding:36px 20px;min-height:min(48vh,420px);
-      text-align:center; transition:transform .08s ease;
-    }
-    .face.clickable{cursor:pointer}
-    .face.clickable:active{transform:scale(.985)}
-    .han{font-size:clamp(120px,22vw,220px);line-height:1;letter-spacing:4px}
-    .english{margin-top:12px;font-size:clamp(14px,2.8vw,18px);color:var(--muted);letter-spacing:.5px}
-    .controls{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    button{font:inherit;border:0;padding:11px 16px;border-radius:12px;background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 14px rgba(37,99,235,.22)}
-    button.ghost{background:#eef2ff;color:#3043a9;box-shadow:none}
-    button.warn{background:#fff7ed;color:#92400e;border:1px solid #fed7aa;box-shadow:none}
-    button.ok{background:var(--ok)}
-    button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
-    .hint{margin-top:8px;color:var(--muted);font-size:13px;text-align:center}
-    .status{margin-top:12px;font-size:15px}
-    .status.ok{color:var(--ok)}
-    .status.err{color:var(--err)}
-    .queue{margin-top:6px;color:var(--muted);font-size:13px}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>診斷版：SpeechRecognition + 逐字「家庭」</title>
+<style>
+  :root{--bg:#f6f7fb;--card:#fff;--ink:#111827;--muted:#6b7280;--ok:#16a34a;--err:#dc2626;--accent:#2563eb}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,PingFang HK,"Microsoft JhengHei",sans-serif;display:flex;justify-content:center;align-items:center}
+  .wrap{width:min(960px,96vw);background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.1);padding:18px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+  .pill{display:inline-block;background:#eef2ff;color:#3043a9;border-radius:999px;padding:3px 10px;font-size:12px}
+  .warn{color:#b45309;font-size:12px}
+  .han{font-size:120px;line-height:1;text-align:center;margin:10px 0}
+  button,select{font:inherit}
+  button{border:0;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--accent);color:#fff}
+  button.ghost{background:#eef2ff;color:#3043a9}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .status{text-align:center;margin-top:6px;font-size:18px}
+  .ok{color:var(--ok);font-weight:700}
+  .err{color:var(--err);font-weight:700}
+  .list{text-align:center;font-size:14px;color:var(--muted)}
+  pre{background:#0b1020;color:#e6edf3;padding:10px;border-radius:10px;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div id="phase">Part 1 · 字咭練習</div>
-      <div class="top-right">
-        <label for="langSel" style="font-size:12px;color:#6b7280">語音識別：</label>
-        <select id="langSel" class="select" title="Speech Recognition Language">
-          <option value="yue-HK">yue-HK（粵語）</option>
-          <option value="zh-HK">zh-HK（中文·香港）</option>
-        </select>
-        <div id="counter" class="badge">1 / 3</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div id="secureWarn" class="warnbar" style="display:none">⚠ 建議用 <b>https</b> 或 <b>http://localhost</b> 開啟，否則麥克風可能無法持續工作。</div>
-
-      <!-- Part 1 -->
-      <div id="part1" class="center">
-        <div id="face" class="face clickable" role="button" aria-label="點擊發音">
-          <div id="han" class="han">一</div>
-          <div id="eng" class="english">one</div>
-        </div>
-        <div class="controls">
-          <button id="prevBtn" class="ghost" type="button">◀ 返回</button>
-          <button id="speakBtn" class="ghost" type="button">🔊 發音</button>
-          <button id="nextBtn" type="button">Next ▶</button>
-          <button id="okBtn" class="ok" type="button" disabled>OK ✓</button>
-        </div>
-        <div class="hint">提示：點擊大字或按「🔊 發音」可播放粵語；鍵盤 Space＝播放，←/→＝上一張/下一張。</div>
-      </div>
-
-      <!-- Part 2 -->
-      <div id="part2" class="center" style="display:none">
-        <div class="face">
-          <div style="font-size:18px;color:var(--muted);margin-bottom:8px">請讀：</div>
-          <div id="quizHan" class="han" aria-live="polite">一</div>
-          <div class="english" id="quizEng">one</div>
-        </div>
-        <div class="controls">
-          <button id="quizSpeak" class="ghost" type="button">🔊 發音</button>
-          <button id="recBtn" type="button">🎙️ 開始讀</button>
-          <button id="skipBtn" class="warn" type="button">不識 → 放到最後</button>
-        </div>
-        <div id="status" class="status" role="status"></div>
-        <div id="queueInfo" class="queue"></div>
-        <div class="hint">讀對會自動去下一個；讀錯或不識會排到最後再來。請在 Chrome 允許麥克風。</div>
-      </div>
+<div class="wrap">
+  <div class="row">
+    <div><b>診斷版 · Web Speech + 逐字朗讀</b></div>
+    <div class="row" style="gap:8px">
+      <span id="ctxBadge" class="pill">環境：檢查中…</span>
+      <span id="srBadge" class="pill">SR：檢查中…</span>
+      <span id="langBadge" class="pill">語言：yue-HK</span>
     </div>
   </div>
 
-  <script>
-    // ---------- Data ----------
-    const CARDS = [
-      { han: "一", eng: "one",  jyut: "jat1",  alts:["jat","yat","yut"] },
-      { han: "二", eng: "two",  jyut: "ji6",   alts:["yi","yee","ji"] },
-      { han: "三", eng: "three",jyut: "saam1", alts:["saam","sam"] },
-    ];
+  <div class="row" style="margin-top:6px">
+    <div class="warn" id="ctxWarn" style="display:none">⚠ 建議使用 HTTPS 或 localhost，否則錄音權限可能不穩定。</div>
+    <div class="row" style="gap:8px">
+      <label for="langSel" style="font-size:12px;color:#6b7280">識別語言：</label>
+      <select id="langSel">
+        <option value="yue-HK" selected>yue-HK（粵語）</option>
+        <option value="zh-HK">zh-HK（中文·香港）</option>
+      </select>
+      <button class="ghost" id="micTestBtn" type="button">🎤 測試麥克風</button>
+      <button class="ghost" id="ttsBtn" type="button">🔊 粵語示範</button>
+    </div>
+  </div>
 
-    // HTTPS / localhost check
-    const secureWarn = document.getElementById('secureWarn');
-    (function(){
-      const ok = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-      if (!ok) secureWarn.style.display = 'block';
-    })();
+  <div class="han" id="han">家</div>
 
-    // ---------- TTS (Cantonese) ----------
-    let voices = [], yueVoice = null;
-    function pickYueVoice(){
-      voices = window.speechSynthesis.getVoices();
-      const inLang = v => (v.lang||"").toLowerCase();
-      const cands = [
-        ...voices.filter(v => inLang(v).includes("yue") && inLang(v).includes("hk")),
-        ...voices.filter(v => inLang(v).includes("zh") && inLang(v).includes("hk")),
-        ...voices.filter(v => /hong\s*kong|cantonese|粵|粤/.test((v.name||"")+" "+(v.lang||"")))
-      ];
-      yueVoice = cands[0] || null;
-    }
-    function speak(text){
-      if(!("speechSynthesis" in window)) return;
-      const u = new SpeechSynthesisUtterance(text);
-      if (yueVoice){ u.voice = yueVoice; u.lang = yueVoice.lang || "yue-HK"; }
-      else { u.lang = "yue-HK"; }
-      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
-    }
-    if ("speechSynthesis" in window){
-      window.speechSynthesis.onvoiceschanged = pickYueVoice;
-      setTimeout(pickYueVoice, 300);
-    }
+  <div class="row" style="justify-content:center;gap:10px">
+    <button id="recBtn" type="button">🎙️ 開始讀</button>
+    <button id="stopBtn" class="ghost" type="button" disabled>■ 停止</button>
+  </div>
 
-    // ---------- Part 1 ----------
-    const phaseEl = document.getElementById("phase");
-    const counterEl = document.getElementById("counter");
-    const part1El = document.getElementById("part1");
-    const faceEl = document.getElementById("face");
-    const hanEl = document.getElementById("han");
-    const engEl = document.getElementById("eng");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const speakBtn = document.getElementById("speakBtn");
-    const okBtn = document.getElementById("okBtn");
+  <div id="status" class="status">請讀：家 → 然後是：庭</div>
+  <div id="queue" class="list">剩餘：家　庭</div>
 
-    let idx = 0;
-    let visited = new Set([0]);
+  <h4 style="margin-bottom:6px">事件日誌</h4>
+  <pre id="log"></pre>
 
-    function renderPart1(){
-      const {han, eng} = CARDS[idx];
-      hanEl.textContent = han; engEl.textContent = eng;
-      counterEl.textContent = `${idx+1} / ${CARDS.length}`;
-      prevBtn.disabled = idx===0;
-      nextBtn.disabled = idx===CARDS.length-1;
-      okBtn.disabled = visited.size < CARDS.length;
-    }
-    function go(delta){
-      const newIdx = Math.min(CARDS.length-1, Math.max(0, idx+delta));
-      if (newIdx !== idx){ idx = newIdx; visited.add(idx); renderPart1(); }
-    }
-    function speakCurrent(){ speak(CARDS[idx].han); }
+  <h4 style="margin-bottom:6px">最新結果 / 候選</h4>
+  <pre id="alts"></pre>
+</div>
 
-    faceEl.addEventListener("click", speakCurrent);
-    speakBtn.addEventListener("click", speakCurrent);
-    prevBtn.addEventListener("click", ()=>go(-1));
-    nextBtn.addEventListener("click", ()=>go(1));
-    window.addEventListener("keydown", (e)=>{
-      if (e.code==="Space"){ e.preventDefault(); speakCurrent(); }
-      if (e.code==="ArrowRight"){ e.preventDefault(); go(1); }
-      if (e.code==="ArrowLeft"){ e.preventDefault(); go(-1); }
-    });
+<script>
+/* ---------- 環境檢查 ---------- */
+const ctxBadge = document.getElementById('ctxBadge');
+const srBadge  = document.getElementById('srBadge');
+const langBadge= document.getElementById('langBadge');
+const ctxWarn  = document.getElementById('ctxWarn');
 
-    // ---------- Switch to Part 2 ----------
-    const part2El = document.getElementById("part2");
-    const quizHanEl = document.getElementById("quizHan");
-    const quizEngEl = document.getElementById("quizEng");
-    const quizSpeakBtn = document.getElementById("quizSpeak");
-    const recBtn = document.getElementById("recBtn");
-    const skipBtn = document.getElementById("skipBtn");
-    const statusEl = document.getElementById("status");
-    const queueInfoEl = document.getElementById("queueInfo");
-    const langSel = document.getElementById("langSel");
+(function(){
+  const secure = location.protocol === 'https:' || ['localhost','127.0.0.1'].includes(location.hostname);
+  ctxBadge.textContent = '環境：' + (secure ? 'OK（安全）' : location.protocol + ' @ ' + location.hostname);
+  ctxWarn.style.display = secure ? 'none' : 'block';
 
-    let queue = [];   // indices
-    let current = null;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  srBadge.textContent = 'SR：' + (SR ? '支援' : '不支援');
+})();
 
-    function shuffle(arr){
-      for (let i = arr.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i+1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-    function startPart2(){
-      part1El.style.display = "none";
-      part2El.style.display = "flex";
-      phaseEl.textContent = "Part 2 · 朗讀練習（讀對為止）";
-      queue = shuffle([0,1,2]);
-      nextQuiz();
-      updateQueueInfo();
-    }
-    okBtn.addEventListener("click", startPart2);
+/* ---------- 訓練資料：逐字隊列「家庭」 ---------- */
+const WORDS = [
+  {
+    han:"家",
+    okHan:new Set(["家","加","架","價","嘉","咖","伽","迦","珈","嘎","噶","嗄","傢","格"]),
+    okJyut:["gaa","gaa1","gaa3","ga","gaak","gaak3"]
+  },
+  {
+    han:"庭",
+    okHan:new Set(["庭","停","廷","亭","霆","蜓","艇","挺","莛"]),
+    okJyut:["ting","ting4","ting2","ting1","teen","teng","ten","tin","dien","din"]
+  }
+];
+let queue = [0,1];
+let current = 0;
 
-    function updateQueueInfo(){
-      queueInfoEl.textContent = "剩餘：" + queue.map(i => CARDS[i].han).join("　");
-      counterEl.textContent = `${queue.length === 0 ? 3 : 3 - queue.length} / 3 完成`;
-    }
-    function nextQuiz(){
-      statusEl.textContent = "";
-      statusEl.className = "status";
-      if (queue.length === 0){
-        quizHanEl.textContent = "完成！";
-        quizEngEl.textContent = "done";
-        recBtn.disabled = true; skipBtn.disabled = true; quizSpeakBtn.disabled = true;
-        statusEl.textContent = "恭喜，全數讀對！";
-        statusEl.classList.add("ok");
-        return;
-      }
-      current = queue[0];
-      const c = CARDS[current];
-      quizHanEl.textContent = c.han;
-      quizEngEl.textContent = c.eng;
-      recBtn.disabled = false; skipBtn.disabled = false; quizSpeakBtn.disabled = false;
-    }
+/* ---------- UI 元件 ---------- */
+const hanEl   = document.getElementById('han');
+const queueEl = document.getElementById('queue');
+const statusEl= document.getElementById('status');
+const logEl   = document.getElementById('log');
+const altsEl  = document.getElementById('alts');
+const recBtn  = document.getElementById('recBtn');
+const stopBtn = document.getElementById('stopBtn');
+const micTestBtn = document.getElementById('micTestBtn');
+const ttsBtn  = document.getElementById('ttsBtn');
+const langSel = document.getElementById('langSel');
 
-    quizSpeakBtn.addEventListener("click", ()=> speak(CARDS[current].han));
-    skipBtn.addEventListener("click", ()=>{
-      if (queue.length>1){ queue.push(queue.shift()); }
-      statusEl.textContent = "已排到最後，稍後再讀。";
-      statusEl.className = "status";
-      updateQueueInfo();
-      nextQuiz();
-    });
+function updateUI(){
+  hanEl.textContent = WORDS[current].han;
+  queueEl.textContent = "剩餘：" + queue.map(i=>WORDS[i].han).join("　");
+  statusEl.textContent = "請讀：" + WORDS[current].han + (queue.length>1 ? " → 然後：" + WORDS[queue[1]].han : "");
+}
 
-    // ---------- Speech Recognition (Cantonese) ----------
-    let recognizing = false;
-    let recognition = null;
-    let resultWatchdog = null;
+/* ---------- TTS（示範） ---------- */
+let voices=[], yueVoice=null;
+function pickYue(){
+  voices = window.speechSynthesis.getVoices();
+  const by = v => (v.lang||"").toLowerCase();
+  const cands = [
+    ...voices.filter(v => by(v).includes("yue") && by(v).includes("hk")),
+    ...voices.filter(v => by(v).includes("zh") && by(v).includes("hk")),
+    ...voices.filter(v => /hong\s*kong|cantonese|粵|粤/.test((v.name||"")+" "+(v.lang||"")))
+  ];
+  yueVoice = cands[0] || null;
+}
+if ("speechSynthesis" in window){
+  window.speechSynthesis.onvoiceschanged = pickYue;
+  setTimeout(pickYue, 200);
+}
+ttsBtn.addEventListener('click', ()=>{
+  const u=new SpeechSynthesisUtterance(WORDS[current].han);
+  if (yueVoice){ u.voice=yueVoice; u.lang=yueVoice.lang || "yue-HK"; }
+  else u.lang="yue-HK";
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+});
 
-    const canRec = "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
-    initRecognition();
+/* ---------- 麥克風測試（可看到是否取到音源） ---------- */
+micTestBtn.addEventListener('click', async ()=>{
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    log('getUserMedia ✅ 已取得音源');
+    stream.getTracks().forEach(t=>t.stop());
+  }catch(err){
+    log('getUserMedia ❌ 失敗：'+err.name+' - '+err.message);
+  }
+});
 
-    function initRecognition(){
-      if (!canRec){
-        recBtn.disabled = true;
-        recBtn.textContent = "裝置不支援語音識別";
-        statusEl.textContent = "建議用 Chrome 桌面版。";
-        return;
-      }
-      const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
-      recognition = new SR();
+/* ---------- SpeechRecognition ---------- */
+let recognizing=false, recognition=null, watchdog=null;
 
-      // 先試用下拉選擇語言；若該值出錯就退回 zh-HK
-      const prefer = (langSel && langSel.value) || "yue-HK";
-      let setOK = false;
-      for (const L of [prefer, "yue-HK", "zh-HK"]){
-        try { recognition.lang = L; setOK = true; console.log("[SR] Using lang =", L); break; }
-        catch(e){ console.warn("[SR] lang not accepted:", L, e); }
-      }
-      if (!setOK) recognition.lang = "zh-HK";
+function initSR(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR){
+    log('SR 不支援：window.SpeechRecognition / webkitSpeechRecognition 不存在');
+    recBtn.disabled=true; stopBtn.disabled=true;
+    return;
+  }
+  recognition = new SR();
+  // 嘗試用下拉語言；如設置出錯 → 退回 zh-HK
+  const want = langSel.value || "yue-HK";
+  try { recognition.lang = want; }
+  catch(e){ recognition.lang = "zh-HK"; log('設置語言失敗，退回 zh-HK：'+e.message); }
+  langBadge.textContent = "語言："+recognition.lang;
 
-      recognition.interimResults = false;
-      recognition.continuous = false;
-      recognition.maxAlternatives = 5;
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 5;
 
-      recognition.onstart = ()=>{
-        recognizing = true;
-        recBtn.textContent = "■ 停止";
-        statusEl.textContent = "🎤 正在聽…（請清楚讀出畫面上的字）";
-        statusEl.className = "status";
-        clearTimeout(resultWatchdog);
-        resultWatchdog = setTimeout(()=>{
-          try { recognition.stop(); } catch(e){}
-          statusEl.textContent = "⏱ 超時未收到語音，請再試。";
-          statusEl.className = "status err";
-        }, 6000);
-      };
-      recognition.onspeechend = ()=>{ try { recognition.stop(); } catch(e){} };
-      recognition.onerror = (e)=>{
-        clearTimeout(resultWatchdog);
-        recognizing = false;
-        recBtn.textContent = "🎙️ 開始讀";
-        statusEl.textContent = "識別錯誤：" + (e.error || "unknown");
-        statusEl.className = "status err";
-      };
-      recognition.onend = ()=>{
-        clearTimeout(resultWatchdog);
-        recognizing = false;
-        recBtn.textContent = "🎙️ 開始讀";
-        if (!statusEl.textContent) {
-          statusEl.textContent = "已停止收音。若未出結果，請再試一次。";
-          statusEl.className = "status";
-        }
-      };
-      recognition.onresult = (e)=>{
-        clearTimeout(resultWatchdog);
-        const hyps = [];
-        for (let i=0;i<e.results.length;i++){
-          const alt = e.results[i][0];
-          if (alt && alt.transcript) hyps.push(alt.transcript.trim());
-        }
-        judge(hyps);
-      };
-    }
+  recognition.onaudiostart = ()=>log('[onaudiostart] 有音頻輸入');
+  recognition.onsoundstart = ()=>log('[onsoundstart] 檢測到聲音');
+  recognition.onsoundend   = ()=>log('[onsoundend] 聲音結束');
+  recognition.onaudioend   = ()=>log('[onaudioend] 音頻結束');
 
-    // 切換語言時，重新建 recognition（Chrome 不能動態改 lang）
-    if (langSel){
-      langSel.addEventListener("change", ()=>{
-        try { recognition && recognition.abort && recognition.abort(); } catch(e){}
-        recognizing = false;
-        initRecognition();
-        statusEl.textContent = "已切換語音識別至：" + langSel.value;
-        statusEl.className = "status";
-      });
-    }
+  recognition.onstart = ()=>{
+    recognizing = true;
+    recBtn.disabled = true; stopBtn.disabled = false;
+    log('[onstart] 開始辨識');
+    statusEl.textContent = "🎤 正在聽…請讀：「"+WORDS[current].han+"」";
+    altsEl.textContent = '';
+    clearTimeout(watchdog);
+    watchdog = setTimeout(()=>{
+      safeStop();
+      statusEl.textContent = "⏱ 6秒內未收到結果，請再試。";
+      statusEl.className = "status err";
+      log('[watchdog] 超時自動停止');
+    }, 6000);
+  };
 
-    function normalize(s){
-      return (s||"").toLowerCase()
-        .replace(/[，。！？,.!?\s]/g,"")
-        .replace(/唔|啊|呀|呢|喎|啦|喇|囉|嘅|個/g,"");
-    }
-    // 接受：正字（「一/二/三」）、簡單粵拼（jat/yi/saam…）、或英語 one/two/three
-    function judge(hypotheses){
-      if (!hypotheses || !hypotheses.length){
-        statusEl.textContent = "未收到結果，請再試。";
-        statusEl.className = "status err";
-        return;
-      }
-      const expect = CARDS[current];
-      const jyutList = [expect.jyut, ...expect.alts].map(x=>x.replace(/[0-9]/g,""));
-      const okBy = (t) => {
-        const s = normalize(t);
-        if (s.includes(expect.han)) return true;
-        if (s.includes(expect.eng)) return true; // 接受英語 one/two/three
-        return jyutList.some(j => s.includes(j));
-      };
+  recognition.onspeechend = ()=>{ log('[onspeechend] 語音停止 → stop()'); safeStop(); };
+  recognition.onnomatch  = (e)=>{ log('[onnomatch] 沒有匹配：'+JSON.stringify(e)); };
 
-      const passed = hypotheses.some(okBy);
-      if (passed){
-        statusEl.textContent = `✅ 讀對啦！「${expect.han}」`;
-        statusEl.className = "status ok";
-        queue.shift();
-        updateQueueInfo();
-        setTimeout(nextQuiz, 700);
-      } else {
-        statusEl.textContent = `❌ 未似呀，再試一次；或按「🔊 發音」聽示範。`;
-        statusEl.className = "status err";
-        queue.push(queue.shift());
-        updateQueueInfo();
-        setTimeout(nextQuiz, 800);
+  recognition.onerror = (e)=>{
+    recognizing=false; recBtn.disabled=false; stopBtn.disabled=true;
+    clearTimeout(watchdog);
+    statusEl.textContent = "識別錯誤："+(e.error||'unknown');
+    statusEl.className = "status err";
+    log('[onerror] '+(e.error||'unknown'));
+  };
+
+  recognition.onend = ()=>{
+    recognizing=false; recBtn.disabled=false; stopBtn.disabled=true;
+    clearTimeout(watchdog);
+    log('[onend] 結束辨識');
+  };
+
+  recognition.onresult = (e)=>{
+    clearTimeout(watchdog);
+    const hyps=[], lines=[];
+    for (let i=0;i<e.results.length;i++){
+      const best = e.results[i][0];
+      if (best){
+        hyps.push(best.transcript.trim());
+        lines.push(`#${i+1} 「${best.transcript.trim()}」 (conf=${(best.confidence||0).toFixed(2)})`);
       }
     }
+    altsEl.textContent = lines.join('\n') || '(無)';
+    log('[onresult] 收到結果：'+hyps.join(' | '));
+    judge(hyps);
+  };
+}
+function safeStop(){ try{ recognition && recognition.stop && recognition.stop(); }catch{} }
 
-    recBtn.addEventListener("click", ()=>{
-      if (!recognition) return;
-      if (!recognizing){
-        statusEl.textContent = "";
-        try { recognition.start(); }
-        catch(err){
-          statusEl.textContent = "無法開始收音："+err.message;
-          statusEl.className = "status err";
-        }
-      } else {
-        try { recognition.stop(); } catch(e){}
-      }
-    });
+function log(msg){ const t=new Date().toLocaleTimeString(); logEl.textContent = `[${t}] ${msg}\n` + logEl.textContent; }
 
-    // Init Part 1
-    renderPart1();
-  </script>
+function norm(s){
+  return (s||"").toLowerCase()
+   .replace(/[，。！？、,.!?\s]/g,"")
+   .replace(/唔|啊|呀|呢|喎|啦|喇|囉|嘅|個/g,"");
+}
+
+function judge(hyps){
+  if (!hyps || !hyps.length){
+    statusEl.textContent = "未收到結果，請再試。";
+    statusEl.className = "status err";
+    return;
+  }
+  const w = WORDS[current];
+  const passed = hyps.some(txt=>{
+    const s = norm(txt);
+    // A) 包含容許中文字
+    for (const ch of w.okHan){ if (s.includes(ch)) return true; }
+    // B) 包含容許羅馬拼
+    if (w.okJyut.some(j => s.includes(j))) return true;
+    // C) 極簡容錯（母音接近）
+    if (w.han === "家" && /^g(a|aa)/.test(s)) return true;
+    if (w.han === "庭" && /^t(i|e)/.test(s)) return true;
+    return false;
+  });
+
+  if (passed){
+    statusEl.textContent = "✅ 讀對：「"+w.han+"」";
+    statusEl.className = "status ok";
+    queue.shift();
+    if (queue.length === 0){
+      hanEl.textContent = "🎉 完成！";
+      queueEl.textContent = "全部讀對！";
+      recBtn.disabled = true; stopBtn.disabled = true;
+      return;
+    }
+    current = queue[0];
+    updateUI();
+  }else{
+    statusEl.textContent = "❌ 未似呀，稍後會再出同一字。";
+    statusEl.className = "status err";
+    queue.push(queue.shift());
+    current = queue[0];
+    setTimeout(updateUI, 700);
+  }
+}
+
+/* 事件綁定與初始化 */
+langSel.addEventListener('change', ()=>{
+  try{ recognition && recognition.abort && recognition.abort(); }catch{}
+  initSR(); updateUI();
+});
+recBtn.addEventListener('click', ()=>{ altsEl.textContent=''; log('呼叫 start()'); try{ recognition.start(); }catch(err){ log('start() 失敗：'+err.message); } });
+stopBtn.addEventListener('click', ()=>{ log('手動 stop()'); safeStop(); });
+
+initSR();
+updateUI();
+</script>
 </body>
 </html>
