@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>第1課｜Part 1 & Part 2（粵語修正版）</title>
+  <title>第1課｜一二三（粵語：Part 1 & Part 2）</title>
   <style>
     :root{
       --bg:#f6f7fb; --card:#fff; --ink:#111827; --muted:#6b7280;
@@ -16,15 +16,21 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,PingFang HK,PingFang TC,"Microsoft JhengHei","Noto Sans CJK TC",sans-serif;
       display:flex;align-items:center;justify-content:center;
     }
-    .wrap{width:min(760px,92vw);padding:18px}
+    .wrap{width:min(780px,94vw);padding:18px}
     .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--muted);font-size:14px}
+    .top-right{display:flex;align-items:center;gap:10px}
+    .select{appearance:none;border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:6px 10px;font:inherit;color:#374151}
+    .badge{display:inline-block;background:#eef2ff;color:#3043a9;border-radius:999px;padding:3px 10px;font-size:12px}
     .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 22px}
+    .warnbar{margin:-10px 0 10px 0; font-size:12px; color:#92400e}
+    .center{display:flex;flex-direction:column;align-items:center;gap:10px}
     .face{
       user-select:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      border-radius:20px;border:1px solid #eef0f5;background:#fafbff;padding:36px 20px;min-height:min(48vh,420px);cursor:pointer;
-      transition:transform .08s ease;text-align:center;
+      border-radius:20px;border:1px solid #eef0f5;background:#fafbff;padding:36px 20px;min-height:min(48vh,420px);
+      text-align:center; transition:transform .08s ease;
     }
-    .face:active{transform:scale(.985)}
+    .face.clickable{cursor:pointer}
+    .face.clickable:active{transform:scale(.985)}
     .han{font-size:clamp(120px,22vw,220px);line-height:1;letter-spacing:4px}
     .english{margin-top:12px;font-size:clamp(14px,2.8vw,18px);color:var(--muted);letter-spacing:.5px}
     .controls{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
@@ -34,20 +40,24 @@
     button.ok{background:var(--ok)}
     button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
     .hint{margin-top:8px;color:var(--muted);font-size:13px;text-align:center}
-    .center{display:flex;flex-direction:column;align-items:center;gap:10px}
     .status{margin-top:12px;font-size:15px}
     .status.ok{color:var(--ok)}
     .status.err{color:var(--err)}
     .queue{margin-top:6px;color:var(--muted);font-size:13px}
-    .badge{display:inline-block;background:#eef2ff;color:#3043a9;border-radius:999px;padding:3px 10px;font-size:12px}
-    .warnbar{margin:-10px 0 10px 0; font-size:12px; color:#92400e}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <div id="phase">Part 1 · 字咭練習</div>
-      <div id="counter" class="badge">1 / 3</div>
+      <div class="top-right">
+        <label for="langSel" style="font-size:12px;color:#6b7280">語音識別：</label>
+        <select id="langSel" class="select" title="Speech Recognition Language">
+          <option value="yue-HK">yue-HK（粵語）</option>
+          <option value="zh-HK">zh-HK（中文·香港）</option>
+        </select>
+        <div id="counter" class="badge">1 / 3</div>
+      </div>
     </div>
 
     <div class="card">
@@ -55,7 +65,7 @@
 
       <!-- Part 1 -->
       <div id="part1" class="center">
-        <div id="face" class="face" role="button" aria-label="點擊發音">
+        <div id="face" class="face clickable" role="button" aria-label="點擊發音">
           <div id="han" class="han">一</div>
           <div id="eng" class="english">one</div>
         </div>
@@ -70,7 +80,7 @@
 
       <!-- Part 2 -->
       <div id="part2" class="center" style="display:none">
-        <div class="face" style="cursor:auto">
+        <div class="face">
           <div style="font-size:18px;color:var(--muted);margin-bottom:8px">請讀：</div>
           <div id="quizHan" class="han" aria-live="polite">一</div>
           <div class="english" id="quizEng">one</div>
@@ -95,7 +105,7 @@
       { han: "三", eng: "three",jyut: "saam1", alts:["saam","sam"] },
     ];
 
-    // Warn if not secure context
+    // HTTPS / localhost check
     const secureWarn = document.getElementById('secureWarn');
     (function(){
       const ok = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -117,8 +127,8 @@
     function speak(text){
       if(!("speechSynthesis" in window)) return;
       const u = new SpeechSynthesisUtterance(text);
-      if (yueVoice){ u.voice = yueVoice; u.lang = yueVoice.lang || "zh-HK"; }
-      else { u.lang = "zh-HK"; }
+      if (yueVoice){ u.voice = yueVoice; u.lang = yueVoice.lang || "yue-HK"; }
+      else { u.lang = "yue-HK"; }
       window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
     }
     if ("speechSynthesis" in window){
@@ -174,6 +184,7 @@
     const skipBtn = document.getElementById("skipBtn");
     const statusEl = document.getElementById("status");
     const queueInfoEl = document.getElementById("queueInfo");
+    const langSel = document.getElementById("langSel");
 
     let queue = [];   // indices
     let current = null;
@@ -232,13 +243,29 @@
     let resultWatchdog = null;
 
     const canRec = "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
-    if (canRec){
+    initRecognition();
+
+    function initRecognition(){
+      if (!canRec){
+        recBtn.disabled = true;
+        recBtn.textContent = "裝置不支援語音識別";
+        statusEl.textContent = "建議用 Chrome 桌面版。";
+        return;
+      }
       const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
       recognition = new SR();
-      // 用 zh-HK 較穩定；若你的 Chrome 有 yue-HK 也可試
-      recognition.lang = "zh-HK";
+
+      // 先試用下拉選擇語言；若該值出錯就退回 zh-HK
+      const prefer = (langSel && langSel.value) || "yue-HK";
+      let setOK = false;
+      for (const L of [prefer, "yue-HK", "zh-HK"]){
+        try { recognition.lang = L; setOK = true; console.log("[SR] Using lang =", L); break; }
+        catch(e){ console.warn("[SR] lang not accepted:", L, e); }
+      }
+      if (!setOK) recognition.lang = "zh-HK";
+
       recognition.interimResults = false;
-      recognition.continuous = false;    // 說完就收尾
+      recognition.continuous = false;
       recognition.maxAlternatives = 5;
 
       recognition.onstart = ()=>{
@@ -246,7 +273,6 @@
         recBtn.textContent = "■ 停止";
         statusEl.textContent = "🎤 正在聽…（請清楚讀出畫面上的字）";
         statusEl.className = "status";
-        // 看門狗：6 秒沒結果就停
         clearTimeout(resultWatchdog);
         resultWatchdog = setTimeout(()=>{
           try { recognition.stop(); } catch(e){}
@@ -254,10 +280,7 @@
           statusEl.className = "status err";
         }, 6000);
       };
-      recognition.onspeechend = ()=>{
-        // 用戶停止說話，收尾
-        try { recognition.stop(); } catch(e){}
-      };
+      recognition.onspeechend = ()=>{ try { recognition.stop(); } catch(e){} };
       recognition.onerror = (e)=>{
         clearTimeout(resultWatchdog);
         recognizing = false;
@@ -270,7 +293,6 @@
         recognizing = false;
         recBtn.textContent = "🎙️ 開始讀";
         if (!statusEl.textContent) {
-          // 沒有任何 onresult，提示再試
           statusEl.textContent = "已停止收音。若未出結果，請再試一次。";
           statusEl.className = "status";
         }
@@ -284,10 +306,17 @@
         }
         judge(hyps);
       };
-    } else {
-      recBtn.disabled = true;
-      recBtn.textContent = "裝置不支援語音識別";
-      statusEl.textContent = "建議用 Chrome 桌面版。";
+    }
+
+    // 切換語言時，重新建 recognition（Chrome 不能動態改 lang）
+    if (langSel){
+      langSel.addEventListener("change", ()=>{
+        try { recognition && recognition.abort && recognition.abort(); } catch(e){}
+        recognizing = false;
+        initRecognition();
+        statusEl.textContent = "已切換語音識別至：" + langSel.value;
+        statusEl.className = "status";
+      });
     }
 
     function normalize(s){
@@ -295,6 +324,7 @@
         .replace(/[，。！？,.!?\s]/g,"")
         .replace(/唔|啊|呀|呢|喎|啦|喇|囉|嘅|個/g,"");
     }
+    // 接受：正字（「一/二/三」）、簡單粵拼（jat/yi/saam…）、或英語 one/two/three
     function judge(hypotheses){
       if (!hypotheses || !hypotheses.length){
         statusEl.textContent = "未收到結果，請再試。";
@@ -330,9 +360,8 @@
       if (!recognition) return;
       if (!recognizing){
         statusEl.textContent = "";
-        try {
-          recognition.start();
-        } catch(err){
+        try { recognition.start(); }
+        catch(err){
           statusEl.textContent = "無法開始收音："+err.message;
           statusEl.className = "status err";
         }
